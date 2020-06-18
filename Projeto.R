@@ -85,3 +85,8 @@ rpart.plot(classificador)
 previsao = predict(classificador, newdata = base_teste[, -5], type = 'class')
 matriz_confusao = table(base_teste[, 5], previsao)
 print(matriz_confusao)
+
+library(lattice)
+library(ggplot2)
+library(caret)
+confusionMatrix(matriz_confusao)
