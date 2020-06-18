@@ -54,7 +54,7 @@ confusionMatrix(matriz_confusao)
 base = read.csv('GSSvocab.csv')
 library(rpart)
 
-classificador = rpart(formula = vocab ~., data = base)
+#classificador = rpart(formula = vocab ~., data = base)
 classificador = rpart(formula = vocab ~., data = base, control = rpart.control(minbucket = 1))
 print(classificador)
 plot(classificador)
