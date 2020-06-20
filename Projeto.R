@@ -98,7 +98,7 @@ set.seed(1)
 
 c = rep(0,200)
 
-for(i in 1:200){
+ #for(i in 1:200){
     classificador = randomForest(x= base_treinamento[-5], y = base_treinamento$vocab, ntree = i)
     previsao = predict(classificador, newdata = base_teste[-5], type = 'class')
     matriz_confusao = table(base_teste[,5], previsao)
@@ -108,7 +108,29 @@ for(i in 1:200){
     print(confusionMatrix(matriz_confusao))
 
     c[i] = cm$overall['Accuracy']
-
-}
+#}
 
 plot(c, type = "l")
+
+# -------------------------------------------
+
+library(h2o)
+
+h2o.init(nthreads = -1)
+
+classificador = h2o.deeplearning(y = 'vocab',
+                                 training_frame = as.h2o(base_treinamento),
+                                 activation = 'Rectifier',
+                                 hidden = c(80, 160),
+                                 epochs = 1000)
+
+previsao = h2o.predict(classificador, newdata = as.h2o(base_teste[-5]))
+
+previsao = (previsao > 0.5)
+
+previsao = as.vector(previsao)
+
+confusionMatrix(matriz_confusao)
+
+# ZeroR 
+table(base_teste$vocab)
