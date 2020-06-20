@@ -5,13 +5,15 @@ summary(base)
 base$X = NULL
 base$year = NULL
 
-base = na.omit(base)
+base$vocab = ifelse(is.na(base$vocab), mean(base$vocab, na.rm = TRUE), base$vocab) 
+base$age = ifelse(is.na(base$age), mean(base$age, na.rm = TRUE), base$age)
+base$educ = ifelse(is.na(base$educ), mean(base$educ, na.rm = TRUE), base$educ)
 
 base[, 6] = scale(base[,6])
 base[, 7] = scale(base[,7])
 
 library(caTools)
-library(e1071)
+
 
 base$vocab = ifelse(base$vocab < mean(base$vocab), 1, 0)
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
@@ -30,12 +32,13 @@ base$nativeBorn = factor(base$nativeBorn, levels = c('no', 'yes'), labels = c(0,
 #table(base$ageGroup)
 base$ageGroup = factor(base$ageGroup, levels =unique(base$ageGroup), labels = c(1,2,3,4,5))
 
-
 set.seed(1)
-divisao = sample.split(base$vocab, SplitRatio = 0.98)
+divisao = sample.split(base$vocab, SplitRatio = 0.95)
 base_treinamento = subset(base, divisao == TRUE)
 base_teste = subset(base, divisao == FALSE)
 
+# NaiveBayes #
+library(e1071)
 classificador = naiveBayes(x = base_treinamento[-5], y = base_treinamento$vocab)
 print(classificador)
 
@@ -49,8 +52,13 @@ print(matriz_confusao)
 
 library(caret)
 confusionMatrix(matriz_confusao)
+
+# Accuracy : 0.6821 - NaiveBayes – inconsistentes + faltantes + escalonamento 
+# Accuracy : 0.6821 - NaiveBayes – inconsistentes + faltantes 
+# Accuracy : 0.6821 - NaiveBayes – sem pré-processamento
 # ----------------------------------------------------------
 
+# Árvore de Decisão #
 base = read.csv('GSSvocab.csv')
 library(rpart)
 
