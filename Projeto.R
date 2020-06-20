@@ -90,3 +90,25 @@ library(lattice)
 library(ggplot2)
 library(caret)
 confusionMatrix(matriz_confusao)
+
+# ------------------------------------------------------
+
+library(randomForest)
+set.seed(1)
+
+c = rep(0,200)
+
+for(i in 1:200){
+    classificador = randomForest(x= base_treinamento[-5], y = base_treinamento$vocab, ntree = i)
+    previsao = predict(classificador, newdata = base_teste[-5], type = 'class')
+    matriz_confusao = table(base_teste[,5], previsao)
+    print(matriz_confusao)
+
+    cm = confusionMatrix(matriz_confusao)
+    print(confusionMatrix(matriz_confusao))
+
+    c[i] = cm$overall['Accuracy']
+
+}
+
+plot(c, type = "l")
