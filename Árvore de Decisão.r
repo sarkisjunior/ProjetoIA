@@ -12,10 +12,10 @@ base$educ = ifelse(is.na(base$educ), mean(base$educ, na.rm = TRUE), base$educ)
 base[, 6] = scale(base[,6])
 base[, 7] = scale(base[,7])
 
-base$vocab = ifelse(base$vocab < mean(base$vocab), 1, 0)
+base$vocab = ifelse(base$vocab < mean(base$vocab, na.rm = TRUE), 1, 0) #SEM PRE-PROCESSAMENTO É NECESSÁRIO ESSE E O PRÓXIMO
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
 # se nao foi maior q 5, reprovada (0).
-table(base$vocab)
+#table(base$vocab)
 base$vocab = factor(base$vocab , levels = unique(base$vocab), labels = c(0,1) )
 
 #table(base$gender)
@@ -31,15 +31,15 @@ base$ageGroup = factor(base$ageGroup, levels =unique(base$ageGroup), labels = c(
 
 library(caTools)
 set.seed(1)
-divisao = sample.split(base$vocab, SplitRatio = 0.95)
+divisao = sample.split(base$vocab, SplitRatio = 0.85)
 base_treinamento = subset(base, divisao == TRUE)
 base_teste = subset(base, divisao == FALSE)
 
 library(rpart)
 
 classificador = rpart(formula = vocab ~., data = base_treinamento)
-#classificador = rpart(formula = vocab ~., data = base_treinamento, control = rpart.control(minbucket = 1))
-print(classificador)
+classificador = rpart(formula = vocab ~., data = base_treinamento, control = rpart.control(cp = 0))
+#print(classificador)
 plot(classificador)
 text(classificador)
 
@@ -50,8 +50,8 @@ rpart.plot(classificador)
 previsao = predict(classificador, newdata = base_teste[,-5])
 #print(previsao)
 
-printcp(classificador)
-print(classificador$cptable)
+#printcp(classificador)
+#print(classificador$cptable)
 
 classificador$cptable[which.min(classificador$cptable[, "xerror"]),"CP"]
 
@@ -60,20 +60,19 @@ poda = classificador$cptable[which.min(classificador$cptable[, "xerror"]),"CP"]
 plotcp(classificador)
 
 
-prune(classificador,poda)
-classificador = prune(classificador, 0.01)
+#prune(classificador,poda)
+classificador = prune(classificador, poda)
 
-#library(RColorBrewer)
 rpart.plot(classificador)
 previsao = predict(classificador, newdata = base_teste[, -5], type = 'class')
 matriz_confusao = table(base_teste[, 5], previsao)
-print(matriz_confusao)
+#print(matriz_confusao)
 
 library(lattice)
 library(ggplot2)
 library(caret)
 confusionMatrix(matriz_confusao)
 
-# Accuracy : 0.6884 - Árvore de Decisão – inconsistentes + faltantes + escalonamento
-# Accuracy : 0.6884 - Árvore de Decisão – inconsistentes + faltantes
-# Accuracy : NA     - Árvore de Decisão – sem pré-processamento
+# Accuracy : 0.6942 - Árvore de Decisão – inconsistentes + faltantes + escalonamento
+# Accuracy : 0.6942 - Árvore de Decisão – inconsistentes + faltantes
+# Accuracy : 0.7056 - Árvore de Decisão – sem pré-processamento (Apenas na coluna "vocab")

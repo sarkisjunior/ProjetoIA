@@ -33,16 +33,16 @@ base$nativeBorn = factor(base$nativeBorn, levels = c('no', 'yes'), labels = c(0,
 base$ageGroup = factor(base$ageGroup, levels =unique(base$ageGroup), labels = c(1,2,3,4,5))
 
 set.seed(1)
-divisao = sample.split(base$vocab, SplitRatio = 0.95)
+divisao = sample.split(base$vocab, SplitRatio = 0.85)
 base_treinamento = subset(base, divisao == TRUE)
 base_teste = subset(base, divisao == FALSE)
 
 library(randomForest)
 set.seed(1)
 
-c = rep(0,200)
+c = rep(0,100)
 
-for(i in 1:200){
+for(i in 1:100){
     classificador = randomForest(x= base_treinamento[-5], y = base_treinamento$vocab, ntree = i)
     previsao = predict(classificador, newdata = base_teste[-5], type = 'class')
     matriz_confusao = table(base_teste[,5], previsao)
