@@ -9,6 +9,7 @@ base$year = NULL
 # se nao foi maior q 5, reprovada (0).
 #table(base$vocab)
 #base$vocab = factor(base$vocab , levels = unique(base$vocab), labels = c(0,1) ) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
+
 # -------------------- Biblioteca -------------------- #
 #install.packages("caTools")
 library(caTools)
