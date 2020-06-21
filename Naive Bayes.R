@@ -1,5 +1,6 @@
 # -------------------- Essenciais -------------------- #
 base = read.csv('GSSvocab.csv')
+
 base$X = NULL
 base$year = NULL
 
@@ -9,8 +10,11 @@ base$vocab = ifelse(base$vocab <= mean(base$vocab, na.rm = TRUE), 1, 0) #USAR ES
 #table(base$vocab)
 base$vocab = factor(base$vocab , levels = c(0,1), labels = c(0,1) ) #USAR ESSA LINHA PARA OBTER "sem pré-processamento"
 # -------------------- Biblioteca -------------------- #
+#install.packages("caTools")
 library(caTools)
+#install.packages("e1071")
 library(e1071)
+#install.packages("caret")
 library(caret)
 # -------------------- Biblioteca -------------------- #
 
@@ -43,12 +47,11 @@ base$nativeBorn = factor(base$nativeBorn, levels = c('no', 'yes'), labels = c(0,
 base$ageGroup = factor(base$ageGroup, levels =unique(base$ageGroup), labels = c(1,2,3,4,5))
 # ---------------- Pré-processamento ---------------- #
 
+# ------------------ NaiveBayes ------------------ #
 set.seed(1)
 divisao = sample.split(base$vocab, SplitRatio = 0.95)
 base_treinamento = subset(base, divisao == TRUE)
 base_teste = subset(base, divisao == FALSE)
-
-# NaiveBayes #
 
 classificador = naiveBayes(x = base_treinamento[-5], y = base_treinamento$vocab)
 #print(classificador)
@@ -67,4 +70,4 @@ confusionMatrix(matriz_confusao)
 # Accuracy : 0.7027 - NaiveBayes – inconsistentes + faltantes + escalonamento 
 # Accuracy : 0.7027 - NaiveBayes – inconsistentes + faltantes 
 # Accuracy : 0.6984 - NaiveBayes – sem pré-processamento
-# ----------------------------------------------------------
+# ------------------ NaiveBayes ------------------ #
