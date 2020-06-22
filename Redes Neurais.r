@@ -10,7 +10,7 @@ base$year = NULL
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
 # se nao foi maior q 5, reprovada (0).
 #table(base$vocab)
-#base$vocab = factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) ) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
+#base$vocab = as.numeric(factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) )) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
 
 # -------------------- Biblioteca -------------------- #
 #install.packages("caTools")
@@ -36,11 +36,11 @@ base$educGroup = ifelse(is.na(base$educGroup),'12 yrs', base$educGroup)
 base[, 6] = as.numeric(scale(base[,6]))
 base[, 7] = as.numeric(scale(base[,7]))
 
-#base$vocab = ifelse(base$vocab <= mean(base$vocab), 1, 0)
+base$vocab = ifelse(base$vocab <= mean(base$vocab), 1, 2)
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
 # se nao foi maior q 5, reprovada (0).
 #table(base$vocab)
-#base$vocab = as.numeric(factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) ))
+base$vocab = as.numeric(factor(base$vocab , levels = unique(base$vocab), labels = c(0,1) ))
 
 #table(base$gender)
 base$gender = as.numeric(factor(base$gender, levels = c('female', 'male'), labels = c(1,2) ))
@@ -65,13 +65,14 @@ base_teste = subset(base, divisao == FALSE)
 
 h2o.init(nthreads = -1)
 
-classificador = h2o.deeplearning(y = 'vocab', training_frame = as.h2o(base_treinamento), hidden = c(160), epochs = 1000)
+classificador = h2o.deeplearning(y = 'vocab', training_frame = as.h2o(base_treinamento), hidden = c(160,200), epochs = 2000)
 
 previsao = h2o.predict(classificador, newdata = as.h2o(base_teste[-5]))
 
 previsao = previsao$predict
-#previsao = (previsao > 0.5)
+previsao = (previsao > 1.5)
 previsao = as.vector(previsao)
+base_teste$vocab = factor(base_teste$vocab , levels = unique(base_teste$vocab), labels = c(0,1) )
 matriz_confusao = table(base_teste[,5], previsao)
 
 table(base_teste[,5])
@@ -80,7 +81,7 @@ confusionMatrix(matriz_confusao)
 
 table(base_teste$vocab)
 
-# Accuracy : 0.7056 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes + escalonamento
+# Accuracy : 0.3176 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes + escalonamento
 # Accuracy : 0.7056 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes
 # Accuracy : 0.7056 - Redes Neurais (multilayer perceptron) - sem pré-processamento
 # ------------------ Redes Neurais ------------------ #
