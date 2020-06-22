@@ -6,11 +6,11 @@ summary(base)
 base$X = NULL
 base$year = NULL
 
-#base$vocab = ifelse(base$vocab <= mean(base$vocab, na.rm = TRUE), 1, 0) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
+base$vocab = ifelse(base$vocab <= mean(base$vocab, na.rm = TRUE), 1, 0) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
 # se nao foi maior q 5, reprovada (0).
 #table(base$vocab)
-#base$vocab = as.numeric(factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) )) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
+base$vocab = as.numeric(factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) )) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
 
 # -------------------- Biblioteca -------------------- #
 #install.packages("caTools")
@@ -65,14 +65,15 @@ base_teste = subset(base, divisao == FALSE)
 
 h2o.init(nthreads = -1)
 
-classificador = h2o.deeplearning(y = 'vocab', training_frame = as.h2o(base_treinamento), hidden = c(160,200), epochs = 2000)
-
+classificador = h2o.deeplearning(y = 'vocab', training_frame = as.h2o(base_treinamento), hidden = c(160), epochs = 1000)
+#base_teste$vocab = factor(base_teste$vocab , levels = unique(base_teste$vocab), labels = c(0,1) )
 previsao = h2o.predict(classificador, newdata = as.h2o(base_teste[-5]))
 
 previsao = previsao$predict
 previsao = (previsao > 1.5)
 previsao = as.vector(previsao)
-base_teste$vocab = factor(base_teste$vocab , levels = unique(base_teste$vocab), labels = c(0,1) )
+previsao = ifelse(previsao == 1, 2,1)
+#base_teste$vocab = factor(base_teste$vocab , levels = unique(base_teste$vocab), labels = c(0,1) )
 matriz_confusao = table(base_teste[,5], previsao)
 
 table(base_teste[,5])
@@ -81,7 +82,7 @@ confusionMatrix(matriz_confusao)
 
 table(base_teste$vocab)
 
-# Accuracy : 0.3176 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes + escalonamento
-# Accuracy : 0.7056 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes
-# Accuracy : 0.7056 - Redes Neurais (multilayer perceptron) - sem pré-processamento
+# Accuracy : 0.6866 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes + escalonamento
+# Accuracy : 0.6838 - Redes Neurais (multilayer perceptron) - inconsistentes + faltantes
+# Accuracy : 0.7034 - Redes Neurais (multilayer perceptron) - sem pré-processamento
 # ------------------ Redes Neurais ------------------ #
