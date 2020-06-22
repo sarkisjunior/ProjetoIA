@@ -10,7 +10,7 @@ base$year = NULL
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
 # se nao foi maior q 5, reprovada (0).
 #table(base$vocab)
-#base$vocab = factor(base$vocab , levels = unique(base$vocab), labels = c(0,1) ) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
+#base$vocab = factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) ) # USAR ESSA LINHA PARA OBTER "sem pré-processamento"
 
 # -------------------- Biblioteca -------------------- #
 #install.packages("caTools")
@@ -19,6 +19,8 @@ library(caTools)
 library(h2o)
 #install.packages("caret")
 library(caret)
+#install.packages("data.table")
+library(data.table)
 # -------------------- Biblioteca -------------------- #
 
 # -------------------- Essenciais -------------------- #
@@ -31,28 +33,28 @@ base$nativeBorn = ifelse(is.na(base$nativeBorn), 'yes', base$nativeBorn)
 base$ageGroup = ifelse(is.na(base$ageGroup), '60+', base$ageGroup)
 base$educGroup = ifelse(is.na(base$educGroup),'12 yrs', base$educGroup)
 
-base[, 6] = scale(base[,6])
-base[, 7] = scale(base[,7])
+base[, 6] = as.numeric(scale(base[,6]))
+base[, 7] = as.numeric(scale(base[,7]))
 
-base$vocab = ifelse(base$vocab <= mean(base$vocab), 1, 0)
+#base$vocab = ifelse(base$vocab <= mean(base$vocab), 1, 0)
 # Tomando como partido esse experimento uma prova, se a nota for maior que a media entao ela foi aprovada (1),
 # se nao foi maior q 5, reprovada (0).
 #table(base$vocab)
-base$vocab = factor(base$vocab , levels = unique(base$vocab), labels = c(0,1) )
+#base$vocab = as.numeric(factor(base$vocab , levels = unique(base$vocab), labels = c(1,2) ))
 
 #table(base$gender)
-base$gender = factor(base$gender, levels = c('female', 'male'), labels = c(0,1) )
+base$gender = as.numeric(factor(base$gender, levels = c('female', 'male'), labels = c(1,2) ))
 # 0 == female, 1 == male
 
 #table(base$nativeBorn)
-base$nativeBorn = factor(base$nativeBorn, levels = c('no', 'yes'), labels = c(0,1) )
+base$nativeBorn = as.numeric(factor(base$nativeBorn, levels = c('no', 'yes'), labels = c(1,2) ))
 # 0 == no, 1 == yes
 
 #table(base$ageGroup)
-base$ageGroup = factor(base$ageGroup, levels =unique(base$ageGroup), labels = c(1,2,3,4,5))
+base$ageGroup = as.numeric(factor(base$ageGroup, levels =unique(base$ageGroup), labels = c(1,2,3,4,5)))
 
 #table(base$educGroup)
-base$educGroup = factor(base$educGroup, levels = unique(base$educGroup), labels = c(1,2,3,4,5))
+base$educGroup = as.numeric(factor(base$educGroup, levels = unique(base$educGroup), labels = c(1,2,3,4,5)))
 # ---------------- Pré-processamento ---------------- #
 
 # ------------------ Redes Neurais ------------------ #
@@ -63,15 +65,17 @@ base_teste = subset(base, divisao == FALSE)
 
 h2o.init(nthreads = -1)
 
-classificador = h2o.deeplearning(y = 'vocab', training_frame = as.h2o(base_treinamento), activation = 'Rectifier', hidden = c(80, 160), epochs = 1000)
+classificador = h2o.deeplearning(y = 'vocab', training_frame = as.h2o(base_treinamento), hidden = c(160), epochs = 1000)
 
 previsao = h2o.predict(classificador, newdata = as.h2o(base_teste[-5]))
 
-previsao = (previsao > 0.5)
-
+previsao = previsao$predict
+#previsao = (previsao > 0.5)
 previsao = as.vector(previsao)
 matriz_confusao = table(base_teste[,5], previsao)
 
+table(base_teste[,5])
+table(previsao)
 confusionMatrix(matriz_confusao)
 
 table(base_teste$vocab)
